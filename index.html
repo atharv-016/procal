@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atharv's Calculator</title>
+    <link rel="icon" type="image/png" href="atharv.png">
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #f1f3f4;
+            --dark-color: #202124;
+            --light-color: #ffffff;
+            --error-color: #d32f2f;
+            --button-color: #f1f3f4;
+            --operator-color: #dadce0;
+            --function-color: #e8f0fe;
+            --equals-color: #4285f4;
+            --clear-color: #d32f2f;
+            --memory-color: #fce8e6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--light-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: var(--primary-color);
+        }
+
+        .tab {
+            padding: 12px 20px;
+            color: var(--light-color);
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            text-align: center;
+            flex: 1;
+        }
+
+        .tab.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .calculator-panel {
+            padding: 20px;
+            display: none;
+        }
+
+        .calculator-panel.active {
+            display: block;
+        }
+
+        .display {
+            width: 100%;
+            height: 80px;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 2rem;
+            text-align: right;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: var(--secondary-color);
+            overflow-x: auto;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: var(--button-color);
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:hover {
+            filter: brightness(0.95);
+        }
+
+        button.operator {
+            background-color: var(--operator-color);
+        }
+
+        button.function {
+            background-color: var(--function-color);
+        }
+
+        button.equals {
+            background-color: var(--equals-color);
+            color: white;
+        }
+
+        button.clear {
+            background-color: var(--clear-color);
+            color: white;
+        }
+
+        button.memory {
+            background-color: var(--memory-color);
+        }
+
+        .memory-display {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #666;
+            text-align: right;
+        }
+
+        /* Date Calculator Styles */
+        .date-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .date-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .date-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .date-group input, .date-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .date-results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--secondary-color);
+            border-radius: 5px;
+        }
+
+        /* Unit Converter Styles */
+        .converter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .converter-input, .converter-output {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .converter-input input, .converter-output input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .converter-input select, .converter-output select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        /* History Styles */
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .history-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .history-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-expression {
+            font-weight: 500;
+        }
+
+        .history-result {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .history-date {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .clear-history {
+            margin-top: 15px;
+            padding: 8px 15px;
+            background-color: var(--error-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .button-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .tab {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="tabs">
+            <div class="tab active" data-tab="calculator">Calculator</div>
+            <div class="tab" data-tab="date">Date Calc</div>
+            <div class="tab" data-tab="converter">Unit Converter</div>
+            <div class="tab" data-tab="history">History</div>
+        </div>
+
+        <!-- Calculator Panel -->
+        <div class="calculator-panel active" id="calculator">
+            <div class="display" id="display">0</div>
+            <div class="memory-display" id="memory-display">Memory: 0</div>
+            <div class="button-grid">
+                <button class="clear" onclick="clearAll()">AC</button>
+                <button onclick="backspace()">⌫</button>
+                <button class="function" onclick="addToExpression('(')">(</button>
+                <button class="function" onclick="addToExpression(')')">)</button>
+                <button class="function" onclick="addToExpression('%')">%</button>
+                
+                <button class="function" onclick="addToExpression('Math.sin(')">sin</button>
+                <button class="function" onclick="addToExpression('Math.cos(')">cos</button>
+                <button class="function" onclick="addToExpression('Math.tan(')">tan</button>
+                <button class="function" onclick="addToExpression('Math.log(')">ln</button>
+                <button class="function" onclick="addToExpression('Math.log10(')">log</button>
+                
+                <button class="function" onclick="addToExpression('Math.PI')">π</button>
+                <button class="function" onclick="addToExpression('Math.E')">e</button>
+                <button class="function" onclick="addToExpression('Math.sqrt(')">√</button>
+                <button class="function" onclick="addToExpression('**2')">x²</button>
+                <button class="function" onclick="addToExpression('**')">x^y</button>
+                
+                <button onclick="addToExpression('7')">7</button>
+                <button onclick="addToExpression('8')">8</button>
+                <button onclick="addToExpression('9')">9</button>
+                <button class="operator" onclick="addToExpression('/')">÷</button>
+                <button class="memory" onclick="memoryRecall()">MR</button>
+                
+                <button onclick="addToExpression('4')">4</button>
+                <button onclick="addToExpression('5')">5</button>
+                <button onclick="addToExpression('6')">6</button>
+                <button class="operator" onclick="addToExpression('*')">×</button>
+                <button class="memory" onclick="memoryAdd()">M+</button>
+                
+                <button onclick="addToExpression('1')">1</button>
+                <button onclick="addToExpression('2')">2</button>
+                <button onclick="addToExpression('3')">3</button>
+                <button class="operator" onclick="addToExpression('-')">-</button>
+                <button class="memory" onclick="memorySubtract()">M-</button>
+                
+                <button onclick="addToExpression('0')">0</button>
+                <button onclick="addToExpression('00')">00</button>
+                <button onclick="addToExpression('.')">.</button>
+                <button class="operator" onclick="addToExpression('+')">+</button>
+                <button class="equals" onclick="calculate()">=</button>
+            </div>
+        </div>
+
+        <!-- Date Calculator Panel -->
+        <div class="calculator-panel" id="date">
+            <div class="date-inputs">
+                <div class="date-group">
+                    <label>Start Date</label>
+                    <input type="date" id="start-date">
+                </div>
+                <div class="date-group">
+                    <label>End Date</label>
+                    <input type="date" id="end-date">
+                </div>
+            </div>
+            <button class="equals" onclick="calculateDateDifference()">Calculate Difference</button>
+            
+            <div class="date-inputs" style="margin-top: 20px;">
+                <div class="date-group">
+                    <label>Base Date</label>
+                    <input type="date" id="base-date">
+                </div>
+                <div class="date-group">
+                    <label>Add/Subtract</label>
+                    <div style="display: flex;">
+                        <select id="date-operation" style="flex: 1; margin-right: 5px;">
+                            <option value="add">Add</option>
+                            <option value="subtract">Subtract</option>
+                        </select>
+                        <input type="number" id="date-quantity" style="flex: 1; margin-right: 5px;" min="1" value="1">
+                        <select id="date-unit" style="flex: 1;">
+                            <option value="days">Days</option>
+                            <option value="weeks">Weeks</option>
+                            <option value="months">Months</option>
+                            <option value="years">Years</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button class="equals" onclick="calculateDateOperation()">Calculate New Date</button>
+            
+            <div class="date-results" id="date-results">
+                Select dates and click calculate to see results.
+            </div>
+        </div>
+
+        <!-- Unit Converter Panel -->
+        <div class="calculator-panel" id="converter">
+            <div class="converter-container">
+                <div class="converter-input">
+                    <input type="number" id="converter-input-value" placeholder="Enter value">
+                    <select id="converter-input-unit">
+                        <option value="celsius">Celsius (°C)</option>
+                        <option value="fahrenheit">Fahrenheit (°F)</option>
+                        <option value="kelvin">Kelvin (K)</option>
+                        <option value="meters">Meters (m)</option>
+                        <option value="feet">Feet (ft)</option>
+                        <option value="inches">Inches (in)</option>
+                        <option value="miles">Miles (mi)</option>
+                        <option value="kilometers">Kilometers (km)</option>
+                        <option value="kilograms">Kilograms (kg)</option>
+                        <option value="pounds">Pounds (lb)</option>
+                        <option value="ounces">Ounces (oz)</option>
+                        <option value="liters">Liters (L)</option>
+                        <option value="gallons">Gallons (gal)</option>
+                        <option value="milliliters">Milliliters (mL)</option>
+                    </select>
+                </div>
+                <div class="converter-output">
+                    <input type="number" id="converter-output-value" placeholder="Result" readonly>
+                    <select id="converter-output-unit">
+                        <option value="fahrenheit">Fahrenheit (°F)</option>
+                        <option value="celsius" selected>Celsius (°C)</option>
+                        <option value="kelvin">Kelvin (K)</option>
+                        <option value="feet">Feet (ft)</option>
+                        <option value="meters">Meters (m)</option>
+                        <option value="inches">Inches (in)</option>
+                        <option value="kilometers">Kilometers (km)</option>
+                        <option value="miles">Miles (mi)</option>
+                        <option value="pounds">Pounds (lb)</option>
+                        <option value="kilograms">Kilograms (kg)</option>
+                        <option value="ounces">Ounces (oz)</option>
+                        <option value="gallons">Gallons (gal)</option>
+                        <option value="liters">Liters (L)</option>
+                        <option value="milliliters">Milliliters (mL)</option>
+                    </select>
+                </div>
+            </div>
+            <button class="equals" onclick="convertUnits()" style="margin-top: 15px;">Convert</button>
+        </div>
+
+        <!-- History Panel -->
+        <div class="calculator-panel" id="history">
+            <h3>Calculation History</h3>
+            <div class="history-list" id="history-list">
+                <!-- History items will be added here -->
+            </div>
+            <button class="clear-history" onclick="clearHistory()">Clear History</button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentExpression = '0';
+        let memoryValue = 0;
+        let calculationHistory = JSON.parse(localStorage.getItem('calculatorHistory')) || [];
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDisplay();
+            setupTabs();
+            loadHistory();
+            setDefaultDates();
+            setupButtonPressEffects();
+        });
+
+        // Set default dates to today
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('start-date').value = today;
+            document.getElementById('end-date').value = today;
+            document.getElementById('base-date').value = today;
+        }
+
+        // Setup button press effects
+        function setupButtonPressEffects() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('mousedown', function() {
+                    this.style.transform = 'scale(0.95)';
+                });
+                button.addEventListener('mouseup', function() {
+                    this.style.transform = 'scale(1)';
+                });
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        }
+
+        // Tab functionality
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs and panels
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.calculator-panel').forEach(p => p.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding panel
+                    this.classList.add('active');
+                    const panelId = this.getAttribute('data-tab');
+                    document.getElementById(panelId).classList.add('active');
+                });
+            });
+        }
+
+        // Calculator functions
+        function updateDisplay() {
+            document.getElementById('display').textContent = currentExpression;
+            document.getElementById('memory-display').textContent = `Memory: ${memoryValue}`;
+        }
+
+        function addToExpression(value) {
+            if (currentExpression === '0' && !'+-*/(^'.includes(value)) {
+                currentExpression = value;
+            } else {
+                currentExpression += value;
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentExpression = '0';
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (currentExpression.length === 1) {
+                currentExpression = '0';
+            } else {
+                currentExpression = currentExpression.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        function calculate() {
+            try {
+                // Replace visual operators with JavaScript operators
+                let expressionToEval = currentExpression
+                    .replace(/×/g, '*')
+                    .replace(/÷/g, '/')
+                    .replace(/\^/g, '**');
+                
+                // Handle percentage
+                expressionToEval = expressionToEval.replace(/(\d+)%/g, '($1/100)');
+                
+                // Evaluate the expression
+                const result = eval(expressionToEval);
+                
+                // Add to history
+                addToHistory(currentExpression, result);
+                
+                // Update display with result
+                currentExpression = result.toString();
+                updateDisplay();
+            } catch (error) {
+                currentExpression = 'Error';
+                updateDisplay();
+                setTimeout(() => {
+                    currentExpression = '0';
+                    updateDisplay();
+                }, 1000);
+            }
+        }
+
+        // Memory functions
+        function memoryAdd() {
+            try {
+                const currentValue = eval(currentExpression);
+                memoryValue += currentValue;
+                updateDisplay();
+            } catch (error) {
+                currentExpression = 'Error';
+                updateDisplay();
+                setTimeout(() => {
+                    currentExpression = '0';
+                    updateDisplay();
+                }, 1000);
+            }
+        }
+
+        function memorySubtract() {
+            try {
+                const currentValue = eval(currentExpression);
+                memoryValue -= currentValue;
+                updateDisplay();
+            } catch (error) {
+                currentExpression = 'Error';
+                updateDisplay();
+                setTimeout(() => {
+                    currentExpression = '0';
+                    updateDisplay();
+                }, 1000);
+            }
+        }
+
+        function memoryRecall() {
+            currentExpression = memoryValue.toString();
+            updateDisplay();
+        }
+
+        // Date calculator functions
+        function calculateDateDifference() {
+            const startDate = new Date(document.getElementById('start-date').value);
+            const endDate = new Date(document.getElementById('end-date').value);
+            
+            if (isNaN(startDate.getTime())) {
+                document.getElementById('date-results').innerHTML = 'Please select a valid start date';
+                return;
+            }
+            
+            if (isNaN(endDate.getTime())) {
+                document.getElementById('date-results').innerHTML = 'Please select a valid end date';
+                return;
+            }
+            
+            // Calculate difference in milliseconds
+            const diffMs = endDate - startDate;
+            
+            // Convert to days
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            // Calculate years, months, days
+            let years = endDate.getFullYear() - startDate.getFullYear();
+            let months = endDate.getMonth() - startDate.getMonth();
+            let days = endDate.getDate() - startDate.getDate();
+            
+            if (days < 0) {
+                months--;
+                // Get the last day of the previous month
+                const tempDate = new Date(endDate.getFullYear(), endDate.getMonth(), 0);
+                days += tempDate.getDate();
+            }
+            
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            
+            // Format results
+            let resultHTML = `
+                <p><strong>Total Difference:</strong> ${diffDays} days</p>
+                <p><strong>Breakdown:</strong> ${years} years, ${months} months, ${days} days</p>
+                <p><strong>Start Date:</strong> ${formatDate(startDate)}</p>
+                <p><strong>End Date:</strong> ${formatDate(endDate)}</p>
+                <p><strong>Day of Week:</strong> ${getDayOfWeek(startDate)} to ${getDayOfWeek(endDate)}</p>
+            `;
+            
+            document.getElementById('date-results').innerHTML = resultHTML;
+        }
+
+        function calculateDateOperation() {
+            const baseDate = new Date(document.getElementById('base-date').value);
+            const operation = document.getElementById('date-operation').value;
+            const quantity = parseInt(document.getElementById('date-quantity').value);
+            const unit = document.getElementById('date-unit').value;
+            
+            if (isNaN(baseDate.getTime())) {
+                document.getElementById('date-results').innerHTML = 'Please select a valid base date';
+                return;
+            }
+            
+            if (isNaN(quantity)) {
+                document.getElementById('date-results').innerHTML = 'Please enter a valid quantity';
+                return;
+            }
+            
+            const resultDate = new Date(baseDate);
+            
+            if (operation === 'add') {
+                if (unit === 'days') {
+                    resultDate.setDate(resultDate.getDate() + quantity);
+                } else if (unit === 'weeks') {
+                    resultDate.setDate(resultDate.getDate() + (quantity * 7));
+                } else if (unit === 'months') {
+                    resultDate.setMonth(resultDate.getMonth() + quantity);
+                } else if (unit === 'years') {
+                    resultDate.setFullYear(resultDate.getFullYear() + quantity);
+                }
+            } else {
+                if (unit === 'days') {
+                    resultDate.setDate(resultDate.getDate() - quantity);
+                } else if (unit === 'weeks') {
+                    resultDate.setDate(resultDate.getDate() - (quantity * 7));
+                } else if (unit === 'months') {
+                    resultDate.setMonth(resultDate.getMonth() - quantity);
+                } else if (unit === 'years') {
+                    resultDate.setFullYear(resultDate.getFullYear() - quantity);
+                }
+            }
+            
+            let resultHTML = `
+                <p><strong>Base Date:</strong> ${formatDate(baseDate)}</p>
+                <p><strong>Operation:</strong> ${operation === 'add' ? 'Added' : 'Subtracted'} ${quantity} ${unit}</p>
+                <p><strong>Result Date:</strong> ${formatDate(resultDate)}</p>
+                <p><strong>Day of Week:</strong> ${getDayOfWeek(resultDate)}</p>
+            `;
+            
+            document.getElementById('date-results').innerHTML = resultHTML;
+        }
+
+        function formatDate(date) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString(undefined, options);
+        }
+
+        function getDayOfWeek(date) {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return days[date.getDay()];
+        }
+
+        // Unit converter functions
+        function convertUnits() {
+            const inputValue = parseFloat(document.getElementById('converter-input-value').value);
+            const inputUnit = document.getElementById('converter-input-unit').value;
+            const outputUnit = document.getElementById('converter-output-unit').value;
+            
+            if (isNaN(inputValue)) {
+                alert('Please enter a valid number to convert');
+                return;
+            }
+            
+            // First convert to a common unit (meters, kg, liters, celsius)
+            let valueInCommonUnit;
+            
+            // Temperature conversion
+            if (['celsius', 'fahrenheit', 'kelvin'].includes(inputUnit)) {
+                if (inputUnit === 'celsius') {
+                    valueInCommonUnit = inputValue;
+                } else if (inputUnit === 'fahrenheit') {
+                    valueInCommonUnit = (inputValue - 32) * 5/9;
+                } else if (inputUnit === 'kelvin') {
+                    valueInCommonUnit = inputValue - 273.15;
+                }
+                
+                let result;
+                if (outputUnit === 'celsius') {
+                    result = valueInCommonUnit;
+                } else if (outputUnit === 'fahrenheit') {
+                    result = (valueInCommonUnit * 9/5) + 32;
+                } else if (outputUnit === 'kelvin') {
+                    result = valueInCommonUnit + 273.15;
+                }
+                
+                document.getElementById('converter-output-value').value = result.toFixed(2);
+                return;
+            }
+            
+            // Length conversion
+            if (['meters', 'feet', 'inches', 'miles', 'kilometers'].includes(inputUnit)) {
+                // Convert to meters first
+                if (inputUnit === 'meters') {
+                    valueInCommonUnit = inputValue;
+                } else if (inputUnit === 'feet') {
+                    valueInCommonUnit = inputValue * 0.3048;
+                } else if (inputUnit === 'inches') {
+                    valueInCommonUnit = inputValue * 0.0254;
+                } else if (inputUnit === 'miles') {
+                    valueInCommonUnit = inputValue * 1609.344;
+                } else if (inputUnit === 'kilometers') {
+                    valueInCommonUnit = inputValue * 1000;
+                }
+                
+                let result;
+                if (outputUnit === 'meters') {
+                    result = valueInCommonUnit;
+                } else if (outputUnit === 'feet') {
+                    result = valueInCommonUnit / 0.3048;
+                } else if (outputUnit === 'inches') {
+                    result = valueInCommonUnit / 0.0254;
+                } else if (outputUnit === 'miles') {
+                    result = valueInCommonUnit / 1609.344;
+                } else if (outputUnit === 'kilometers') {
+                    result = valueInCommonUnit / 1000;
+                }
+                
+                document.getElementById('converter-output-value').value = result.toFixed(6);
+                return;
+            }
+            
+            // Weight conversion
+            if (['kilograms', 'pounds', 'ounces'].includes(inputUnit)) {
+                // Convert to kg first
+                if (inputUnit === 'kilograms') {
+                    valueInCommonUnit = inputValue;
+                } else if (inputUnit === 'pounds') {
+                    valueInCommonUnit = inputValue * 0.453592;
+                } else if (inputUnit === 'ounces') {
+                    valueInCommonUnit = inputValue * 0.0283495;
+                }
+                
+                let result;
+                if (outputUnit === 'kilograms') {
+                    result = valueInCommonUnit;
+                } else if (outputUnit === 'pounds') {
+                    result = valueInCommonUnit / 0.453592;
+                } else if (outputUnit === 'ounces') {
+                    result = valueInCommonUnit / 0.0283495;
+                }
+                
+                document.getElementById('converter-output-value').value = result.toFixed(6);
+                return;
+            }
+            
+            // Volume conversion
+            if (['liters', 'gallons', 'milliliters'].includes(inputUnit)) {
+                // Convert to liters first
+                if (inputUnit === 'liters') {
+                    valueInCommonUnit = inputValue;
+                } else if (inputUnit === 'gallons') {
+                    valueInCommonUnit = inputValue * 3.78541;
+                } else if (inputUnit === 'milliliters') {
+                    valueInCommonUnit = inputValue / 1000;
+                }
+                
+                let result;
+                if (outputUnit === 'liters') {
+                    result = valueInCommonUnit;
+                } else if (outputUnit === 'gallons') {
+                    result = valueInCommonUnit / 3.78541;
+                } else if (outputUnit === 'milliliters') {
+                    result = valueInCommonUnit * 1000;
+                }
+                
+                document.getElementById('converter-output-value').value = result.toFixed(6);
+                return;
+            }
+        }
+
+        // History functions
+        function addToHistory(expression, result) {
+            const historyItem = {
+                expression,
+                result,
+                timestamp: new Date().toISOString()
+            };
+            
+            calculationHistory.unshift(historyItem);
+            
+            // Keep only the last 50 items
+            if (calculationHistory.length > 50) {
+                calculationHistory = calculationHistory.slice(0, 50);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('calculatorHistory', JSON.stringify(calculationHistory));
+            
+            // Update history display
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            if (calculationHistory.length === 0) {
+                historyList.innerHTML = '<div class="history-item">No history yet</div>';
+                return;
+            }
+            
+            calculationHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const expressionResult = document.createElement('div');
+                expressionResult.innerHTML = `
+                    <div class="history-expression">${item.expression}</div>
+                    <div class="history-result">= ${item.result}</div>
+                    <div class="history-date">${formatHistoryDate(item.timestamp)}</div>
+                `;
+                
+                historyItem.appendChild(expressionResult);
+                historyList.appendChild(historyItem);
+                
+                // Add click event to use this calculation
+                historyItem.addEventListener('click', () => {
+                    currentExpression = item.result.toString();
+                    updateDisplay();
+                    document.querySelector('.tab[data-tab="calculator"]').click();
+                });
+            });
+        }
+
+        function formatHistoryDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all history?')) {
+                calculationHistory = [];
+                localStorage.setItem('calculatorHistory', JSON.stringify(calculationHistory));
+                loadHistory();
+            }
+        }
+    </script>
+</body>
+</html>
