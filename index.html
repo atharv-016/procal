@@ -13,6 +13,60 @@
             background-repeat: no-repeat;
             background-size: cover;
         }    
+         /* Music Player Specific */
+        #music.panel {
+            background: white;
+            z-index: 10;
+        }
+        
+        .playlist {
+            margin-top: 20px;
+        }
+        
+        .song {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .song:hover {
+            background: #e0e0e0;
+        }
+                /* Add this to your existing CSS */
+                .music-panel {
+            display: none;
+            padding: 15px;
+        }
+        .music-panel.active {
+            display: block;
+        }
+        .music-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .music-controls button {
+            padding: 8px 12px;
+            background: #4285f4;
+            color: rgb(255, 255, 255);
+            border: none;
+            border-radius: 4px;
+        }
+        #playlist {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #playlist div {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        #playlist div:hover {
+            background: #4285f4;
+        }
         :root {
             --primary-color: #4285f4;
             --secondary-color: #f1f3f4;
@@ -284,6 +338,7 @@
             <div class="tab" data-tab="date">Date Calc</div>
             <div class="tab" data-tab="converter">Unit Converter</div>
             <div class="tab" data-tab="history">History</div>
+            <div class="tab" data-tab="music">🎵 Music</div>
         </div>
 
         <!-- Calculator Panel -->
@@ -333,6 +388,30 @@
                 <button class="operator" onclick="addToExpression('+')">+</button>
                 <button class="equals" onclick="calculate()">=</button>
             </div>
+        </div>
+
+            <div class="music-panel" id="music">
+        <audio id="audio-player" loop></audio>
+        <div class="music-controls">
+            
+            <button onclick="playPause()">▶️ Play</button>
+            <button onclick="stopMusic()">⏹️ Stop</button>          
+            <input type="range" id="volume" min="0" max="1" step="0.1" value="0.7">
+        </div>
+        <div id="playlist">
+            <div onclick="playSong('M/eeyuh_super_slowed.mp3')">1.EEYUH Slowed</div>
+            <div onclick="playSong('M/fluxxwave.mp3')">2.Fluxxwave</div>
+            <div onclick="playSong('M/adele_skyfall_slowed.mp3')">3.Skyfall</div>
+            <div onclick="playSong('M/aura_slowed_reverb.mp3')">4.Aura Slowed</div>
+            <div onclick="playSong('M/funk_do_bounce.mp3')">5.Funk Do Bounce</div>
+            <div onclick="playSong('M/funk_infernal.mp3')">6.Funk Infernal</div>      
+            <div onclick="playSong('M/glory.mp3')">7.Glory</div>
+            <div onclick="playSong('M/matushka_ultra_funk.mp3')">8.Matushka Funk</div>
+            <div onclick="playSong('M/montagemmysteriousgame.mp3')">9.Montegem</div>      
+            <div onclick="playSong('M/next_upbeat.mp3')">10.Next UpBeat</div>
+            <div onclick="playSong('M/slava_funk.mp3')">11.Slava Funk</div>
+            <div onclick="playSong('M/sleepwalker_akiaura.mp3')">12.Sleep Walker</div>
+
         </div>
 
         <!-- Date Calculator Panel -->
@@ -877,6 +956,44 @@
                 localStorage.setItem('calculatorHistory', JSON.stringify(calculationHistory));
                 loadHistory();
             }
+        }
+
+                // Music player functions
+        const audio = document.getElementById('audio-player');
+        
+        function playSong(songFile) {
+            audio.src = songFile;
+            audio.play();
+        }
+
+        function playPause() {
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
+            }
+        }
+
+        function stopMusic() {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+        // Volume control
+        document.getElementById('volume').addEventListener('input', (e) => {
+              audio.volume = e.target.value;
+        });
+
+        // Update tab switching to include music panel
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // ... existing tab code ...
+                    if (this.getAttribute('data-tab') === 'music') {
+                        document.getElementById('music').classList.add('active');
+                    }
+                });
+            });
         }
     </script>
 </body>
